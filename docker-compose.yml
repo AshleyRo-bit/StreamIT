@@ -1,0 +1,89 @@
+version: "3.8"
+
+services:
+
+  # Media Server
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    ports:
+      - "8096:8096"
+      - "7359:7359/udp"
+    volumes:
+      - ./configs/jellyfin:/config
+      - ./data:/data
+    depends_on:
+      - iptv-engine
+    restart: unless-stopped
+
+  # TV Series Management
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    ports:
+      - "8989:8989"
+    volumes:
+      - ./configs/sonarr:/config
+      - ./data:/data
+    restart: unless-stopped
+
+  # Movie Management
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    ports:
+      - "7878:7878"
+    volumes:
+      - ./configs/radarr:/config
+      - ./data:/data
+    restart: unless-stopped
+
+  # Indexer Manager
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    ports:
+      - "9696:9696"
+    volumes:
+      - ./configs/prowlarr:/config
+    restart: unless-stopped
+
+  # Indian IPTV Playlist Engine
+  iptv-engine:
+    build:
+      context: ./iptv-engine
+      dockerfile: Dockerfile
+    container_name: iptv-engine
+    ports:
+      - "8095:8095"
+    restart: unless-stopped
+
+  # Download Client
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+    ports:
+      - "8080:8080"
+      - "6881:6881"
+      - "6881:6881/udp"
+    volumes:
+      - ./configs/qbittorrent:/config
+      - ./data:/data
+    restart: unless-stopped
